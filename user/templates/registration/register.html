@@ -1,0 +1,151 @@
+<form action="{% url 'signup' %}" method="post">
+    {% csrf_token %}
+    {% if signup_form.errors %}
+        <div class="form-group alert alert-warning" role="alert">
+            {{ signup_form.non_field_errors }}
+        </div>
+    {% endif %}
+    <div class="form-group">
+        <label for="validationDefault01">First name</label>
+
+        <input type="text" class="form-control" id="validationDefault01"
+               placeholder="Your First name" required="" name="first_name">
+    </div>
+    <div class="form-group">
+        <label for="validationDefault02">Last name</label>
+        <input type="text" class="form-control" id="validationDefault02"
+               placeholder="Your Last name" required="" name="last_name">
+    </div>
+
+    <div class="form-group">
+        <label class="mb-2" for="exampleInputEmail1">
+            {{ signup_form.email.label }}
+        </label>
+
+        <input type="email" class="form-control" id="exampleInputEmail1"
+               aria-describedby="emailHelp" placeholder="example@email.com" required=""
+               name="email">
+
+        <small id="emailHelp" class="form-text text-muted">
+            {{ signup_form.username_small }}
+        </small>
+    </div>
+
+    <div class="form-group">
+        <label for="password1" class="mb-2">Password</label>
+        <input type="password" class="form-control" id="password1" placeholder="" required=""
+               name="password1">
+    </div>
+    <div class="form-group">
+        <label for="password2">Confirm Password</label>
+        <input type="password" class="form-control" id="password2" placeholder="" required=""
+               name="password2">
+    </div>
+
+    <button type="submit" class="btn btn-primary submit mb-4">Register</button>
+    <a href="{% url 'FLEX:index' %}" type="button"
+       class="mb-4 float-right btn btn-outline-dark ">Cancel</a>
+    <p class="text-center pb-4">
+        <a href="#">By clicking Register, I agree to your terms</a>
+    </p>
+
+</form>
+
+</div>
+</div>
+
+</div>
+</div>
+</div>
+<!--//Register-->
+<!--//model-form-->
+
+{#    <!-- video Modal Popup -->#}
+{#    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"#}
+{#         aria-hidden="true">#}
+{#        <div class="modal-dialog" role="document">#}
+{#            <div class="modal-content">#}
+{#                <div class="modal-header">#}
+{#                    <h5 class="modal-title" id="exampleModalLabel">Introduction Video</h5>#}
+{#                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
+{#                        <span aria-hidden="true">&times;</span>#}
+{#                    </button>#}
+{#                </div>#}
+{#                <div class="modal-body video">#}
+{#                    <iframe src="https://player.vimeo.com/video/33531612"></iframe>#}
+{##}
+{#                </div>#}
+{#                <div class="modal-footer">#}
+{#                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>#}
+{#                    <button type="button" class="btn btn-primary">Save changes</button>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#    <!-- //video Model Popup -->#}
+
+<!-- Vertically centered Modal -->
+<div class="modal fade" id="exampleModalCenter1" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenter"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-capitalize text-center" id="exampleModalLongTitle"><i
+                        class="fab fa-cloudversify"></i> Flex Art</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img src="{% static "flexart/images/bg.jpg" %}" class="img-fluid mb-3" alt="Modal Image"/>
+                Vivamus eget est in odio tempor interdum. Mauris maximus fermentum arcu, ac finibus ante. Sed mattis
+                risus at ipsum elementum,
+                ut auctor turpis cursus. Sed sed odio pharetra, aliquet velit cursus, vehicula enim. Mauris porta
+                aliquet magna, eget laoreet ligula.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //Vertically centered Modal -->
+{% endblock %}
+
+{% block footer_script %}
+    {#    style="display: none"#}
+    <!-- /popup btn on page load -->
+    <a id="hidden_popup_btn" data-toggle="modal" data-target="#exampleModalCenter2"
+       data-backdrop="static" data-keyboard="false"> BUTTON </a>
+    <!-- //popup btn on page load -->
+
+    <!-- popup register modal -->
+    <script>
+        function ready() {
+            document.getElementById('hidden_popup_btn').click();
+        }
+
+        document.addEventListener("DOMContentLoaded", ready);
+    </script>
+    <!-- //popup register modal -->
+
+    {% compress js %}
+        <!-- banner slider js -->
+        <script src="{% static "flexart/js/minimal-slider.js" %}"></script>
+        <!-- //banner slider js -->
+
+        <!-- Stats-Number-Scroller-Animation-JavaScript -->
+        <script src="{% static "flexart/js/waypoints.min.js" %}"></script>
+        <script src="{% static "flexart/js/counterup.min.js" %}"></script>
+    {% endcompress %}
+    <script>
+        jQuery(document).ready(function ($) {
+            $('.counter').counterUp({
+                delay: 100,
+                time: 1000
+            });
+        });
+    </script>
+    <!-- //Stats-Number-Scroller-Animation-JavaScript -->
+{% endblock %}
