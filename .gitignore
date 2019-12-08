@@ -110,3 +110,4 @@ venv.bak/
 
 ### Django ###
 *.pyc
+migrations/
