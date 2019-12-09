@@ -1,6 +1,8 @@
 import sys
+from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.decorators import user_passes_test, login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.sites.models import Site
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -12,10 +14,15 @@ from django.shortcuts import redirect
 from django.db import DatabaseError
 from social.models import SocialAccount, SocialProvider
 
-# todo: from_client_secrets_file to from json
-client_secret_file_path = 'C:\\Users\\mahdi\\Desktop\\Custom_user_socialSignin\\oauth2_google\\client_secret.json'
-# client_secret_json = ''
+if hasattr(settings, 'GOOGLE_CLIENT_FILE_PATH'):
+    GOOGLE_CLIENT_FILE_PATH = settings.GOOGLE_CLIENT_FILE_PATH
+else:
+    GOOGLE_CLIENT_ID = SocialProvider.objects.get(social=SocialProvider.GOOGLE).client_id
+
 SCOPES = ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', ]
+
+# view names that require logged in user
+REQUIRE_LOGGED_IN_URL_NAMES = ['google_callback_add_social', 'google_callback_revoke']
 
 
 @require_http_methods(["GET", ])
@@ -26,18 +33,19 @@ def google_call(request, next_call):
         name of the url to get called-back by google.
     """
     # view names that require logged in user
-    if next_call == 'google_callback_add_social' or next_call == 'google_callback_revoke':
+    if next_call in REQUIRE_LOGGED_IN_URL_NAMES:
         # view require logged in user
         if not request.user.is_authenticated:
-            return redirect(reverse('login') + '?next=%s' % request.path)
+            return redirect_to_login(request.path, login_url=reverse('login'))
     # Use the client_secret.json file to identify the application requesting
     # authorization. The client ID (from that file) and access scopes are required.
     import google_auth_oauthlib.flow
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        client_secret_file_path,
-        SCOPES,
-    )
-
+    flow = None
+    try:
+        flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(GOOGLE_CLIENT_FILE_PATH, SCOPES, )
+    except ValueError as err:
+        print(err)
+        return redirect('google_error')
     # Indicate where the API server will redirect the user after the user completes
     # the authorization flow. The redirect URI is required. The value must exactly
     # match one of the authorized redirect URIs for the OAuth 2.0 client, which you
@@ -51,14 +59,17 @@ def google_call(request, next_call):
 
     # Generate URL for request to Google's OAuth 2.0 server.
     # Use kwargs to set optional request parameters.
-    # include_granted_scopes = 'true',
     # Enable incremental authorization. Recommended as a best practice.
+    # include_granted_scopes = 'true',
     # login_hint=request.user.is_anonymous or request.user.email,
+    # re-prompting the user for permission. Recommended for web server apps.
     # prompt='consent',
     # Enable offline access so that you can refresh an access token without
-    # re-prompting the user for permission. Recommended for web server apps.
     # access_type = 'offline',
-    authorization_url, state = flow.authorization_url()
+    GOOGLE_OPTIONS = None
+    if hasattr(settings, 'GOOGLE_OPTIONS'):
+        GOOGLE_OPTIONS = settings.GOOGLE_OPTIONS
+    authorization_url, state = flow.authorization_url(**GOOGLE_OPTIONS)
 
     return redirect(authorization_url)
 
@@ -76,7 +87,7 @@ def google_callback_signup(request):
     redirect_uri = request.GET.get('redirect_uri', request.build_absolute_uri('?'))
     import google_auth_oauthlib.flow
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        client_secret_file_path,
+        GOOGLE_CLIENT_FILE_PATH,
         SCOPES,
         state=state)
     flow.redirect_uri = redirect_uri
@@ -116,7 +127,7 @@ def google_callback_login(request):
     redirect_uri = request.GET.get('redirect_uri', request.build_absolute_uri('?'))
     import google_auth_oauthlib.flow
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        client_secret_file_path,
+        GOOGLE_CLIENT_FILE_PATH,
         SCOPES,
         state=state)
     flow.redirect_uri = redirect_uri
@@ -157,7 +168,7 @@ def google_callback_add_social(request):
     redirect_uri = request.GET.get('redirect_uri', request.build_absolute_uri('?'))
     import google_auth_oauthlib.flow
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        client_secret_file_path,
+        GOOGLE_CLIENT_FILE_PATH,
         SCOPES,
         state=state)
     flow.redirect_uri = redirect_uri
@@ -207,7 +218,7 @@ def google_callback_revoke(request):
     redirect_uri = request.GET.get('redirect_uri', request.build_absolute_uri('?'))
     import google_auth_oauthlib.flow
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        client_secret_file_path,
+        GOOGLE_CLIENT_FILE_PATH,
         SCOPES,
         state=state)
     flow.redirect_uri = redirect_uri

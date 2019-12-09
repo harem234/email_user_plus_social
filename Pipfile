@@ -7,11 +7,8 @@ verify_ssl = true
 
 [packages]
 django = "==2.*"
-google-api-python-client = "*"
 requests = "*"
 google-auth-oauthlib = "*"
-google-auth = "*"
-google-auth-httplib2 = "*"
 
 [requires]
 python_version = "3.7"

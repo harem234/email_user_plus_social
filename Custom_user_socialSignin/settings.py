@@ -131,3 +131,7 @@ STATIC_URL = '/static/'
 # File Backend
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'emails')
+
+# social google
+GOOGLE_CLIENT_FILE_PATH = 'C:\\Users\\mahdi\\Desktop\\Custom_user_socialSignin\\oauth2_google\\client_secret.json'
+GOOGLE_OPTIONS = {'prompt': 'consent'}
