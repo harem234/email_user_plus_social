@@ -111,3 +111,6 @@ venv.bak/
 ### Django ###
 *.pyc
 migrations/
+
+### Google client file ###
+oauth2_google/client_secret.json

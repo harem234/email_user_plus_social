@@ -19,7 +19,7 @@ urlpatterns = [
     path('google/ajax_post/add_social/', views.GoogleAjaxAddSocialView.as_view(), name='google_ajax_add_social'),
     # end of ajax POST JSON
 
-    path('google/', TemplateView.as_view(template_name='oauth2_google/google_ajax.html'), name='google'),
-
-    path('google/error/', TemplateView.as_view(template_name='oauth2_google/google_ajax.html', ), name='google_error'),
+    path('google/', TemplateView.as_view(template_name='oauth2_google/google_python.html'), name='google'),
+    path('google/error/', TemplateView.as_view(template_name='oauth2_google/google_python.html', ),
+         name='google_error'),
 ]

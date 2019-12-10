@@ -4,6 +4,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib.auth.views import redirect_to_login
 from django.contrib.sites.models import Site
+from django.views.generic.base import View
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
@@ -17,7 +18,7 @@ from social.models import SocialAccount, SocialProvider
 if hasattr(settings, 'GOOGLE_CLIENT_FILE_PATH'):
     GOOGLE_CLIENT_FILE_PATH = settings.GOOGLE_CLIENT_FILE_PATH
 else:
-    GOOGLE_CLIENT_ID = SocialProvider.objects.get(social=SocialProvider.GOOGLE).client_id
+    raise ValueError('GOOGLE_CLIENT_FILE_PATH is required in settings')
 
 SCOPES = ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', ]
 
@@ -174,6 +175,9 @@ def google_callback_add_social(request):
     flow.redirect_uri = redirect_uri
     try:
         flow.fetch_token(code=code)
+    except ValueError as err:
+        print("flow.fetch_token: ", err)
+        return redirect('google_error')
     except Exception:
         print("Unexpected error:", sys.exc_info()[0])
         return redirect('google_error')
@@ -273,9 +277,6 @@ class AjaxJsonGoogleMixin:
                 return JsonResponse({'status': 'false', 'error': 'denied by google'}, status=400)
         else:
             return JsonResponse({'status': 'false', 'error': 'not ajax'}, status=400)
-
-
-from django.views.generic.base import View
 
 
 class AjaxGoogleAuthorizeMixin(AjaxJsonGoogleMixin):

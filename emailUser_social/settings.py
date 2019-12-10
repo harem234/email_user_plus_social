@@ -52,7 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'Custom_user_socialSignin.urls'
+ROOT_URLCONF = 'emailUser_social.urls'
 
 TEMPLATES = [
     {
@@ -70,7 +70,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'Custom_user_socialSignin.wsgi.application'
+WSGI_APPLICATION = 'emailUser_social.wsgi.application'
+
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
