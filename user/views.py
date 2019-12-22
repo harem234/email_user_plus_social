@@ -1,44 +1,33 @@
-from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.urls import reverse_lazy, reverse
 from django.views.decorators.http import require_http_methods
 from django.views.generic import CreateView
 from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordChangeDoneView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import views
+from django.utils.decorators import method_decorator
+from django.urls import reverse_lazy
 from .forms import CustomUserCreationForm
-from .models import EmailUser
 
 
-@method_decorator(require_http_methods(["POST", ]), name='dispatch')
+# @method_decorator(require_http_methods(["POST", ]), name='dispatch')
 class PostLogoutView(views.LogoutView):
     """only with Post request user can log out,
     this add more security."""
     next_page = reverse_lazy('logout_post')
 
+    @method_decorator(require_http_methods(["POST", ]))
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
     success_url = reverse_lazy('login')
-    template_name = 'registration/'
+    template_name = 'registration/register.html'
 
     # model object
-    context_object_name = 'signup_model'
-
-    context_form_name = 'signup_form'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # to change form in context of template
-
-        # A
-        # context[self.context_form_name] = self.get_form()
-        # del context['form']
-        # B
-        context[self.context_form_name] = context.pop('form')
-        return context
+    # context_object_name = 'signup_model'
+    #
+    # context_form_name = 'signup_form'
 
 
 class CustomLoginView(LoginView):

@@ -26,6 +26,9 @@ SCOPES = ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googlea
 REQUIRE_LOGGED_IN_URL_NAMES = ['google_callback_add_social', 'google_callback_revoke']
 
 
+# GOOGLE_OPTIONS = None
+
+
 @require_http_methods(["GET", ])
 def google_call(request, next_call):
     """
@@ -103,13 +106,18 @@ def google_callback_signup(request):
     # authorization_response = request.build_absolute_uri()
     # flow.fetch_token(authorization_response=authorization_response)
 
-    idinfo = authorize_by_google_api_profile(flow.credentials.client_id, flow.credentials.id_token, )
-    userId = idinfo['sub']
-    email = idinfo['email']
-    isEmailVerified = idinfo['email_verified']
+    try:
+        idinfo = authorize_by_google_api_profile(flow.credentials.client_id, flow.credentials.id_token, )
+        userId = idinfo['sub']
+        email = idinfo['email']
+        isEmailVerified = idinfo['email_verified']
+    except ValueError as err:
+        print('google_callback_signup: ', err)
+        return redirect('google_error')
 
     try:
-        create_social_create_email_user(userId, email, 'google', isEmailVerified)
+        create_social_create_email_user(userId, email, SocialProvider.objects.get(social=SocialProvider.GOOGLE),
+                                        isEmailVerified)
     except ValueError as err:
         print(err)
         return redirect('google_error')
@@ -141,7 +149,6 @@ def google_callback_login(request):
     # obligates https
     # authorization_response = request.build_absolute_uri()
     # flow.fetch_token(authorization_response=authorization_response)
-
     idinfo = authorize_by_google_api_profile(flow.credentials.client_id, flow.credentials.id_token, )
     userId = idinfo['sub']
     try:
@@ -156,6 +163,71 @@ def google_callback_login(request):
     login(request, account.user, )
 
     return redirect('google', )
+
+
+@require_http_methods(["GET", ])
+@user_passes_test(lambda u: u.is_anonymous, login_url=reverse_lazy('google'), redirect_field_name=None)
+def google_callback_login_signup(request):
+    """
+    @param request:
+    @return:
+
+    if Google id is associated with a user log in the user
+    if Google id is NOT associated with a user make the user and social account then  log in the user
+    """
+    if 'access_denied' == request.GET.get('error', ''):
+        return redirect('google_error')
+
+    state = request.GET.get('state', '')
+    code = request.GET.get('code', '')
+    redirect_uri = request.GET.get('redirect_uri', request.build_absolute_uri('?'))
+    import google_auth_oauthlib.flow
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+        GOOGLE_CLIENT_FILE_PATH,
+        SCOPES,
+        state=state)
+    flow.redirect_uri = redirect_uri
+    try:
+        flow.fetch_token(code=code)
+    except Exception as err:
+        print("Exception:", err)
+        return redirect('google_error')
+
+    try:
+        idinfo = authorize_by_google_api_profile(flow.credentials.client_id, flow.credentials.id_token, )
+        userId = idinfo['sub']
+        email = idinfo['email']
+        isEmailVerified = idinfo['email_verified']
+    except ValueError as err:
+        print('google_callback_signup: ', err)
+        return redirect('google_error')
+
+    account = SocialAccount.objects.filter(social_id=userId,
+                                           provider=SocialProvider.objects.get(social=SocialProvider.GOOGLE),
+                                           site=Site.objects.get_current())
+
+    # if the google id has an account log in the user
+    if account:
+        # there should be only one result back
+        account = account[0]
+        # LogIn the user with the social account
+        login(request, account.user, )
+        return redirect('google', )
+    else:
+        try:
+            from social.views import create_social_create_email_user
+            create_social_create_email_user(userId, email, SocialProvider.objects.get(social=SocialProvider.GOOGLE),
+                                            isEmailVerified)
+        except ValueError as err:
+            print('google_callback_login_signup', err)
+            return redirect('google_error')
+
+        account = SocialAccount.objects.get(social_id=userId,
+                                            provider=SocialProvider.objects.get(social=SocialProvider.GOOGLE),
+                                            site=Site.objects.get_current())
+        login(request, account.user, )
+
+        return redirect('google', )
 
 
 @require_http_methods(["GET", ])
@@ -202,7 +274,6 @@ def google_callback_add_social(request):
     except DatabaseError:
         # database error
         return redirect('google_error')
-
     if isCreated:
         # social account created and added to the user
         return redirect('google')
@@ -249,8 +320,15 @@ the following is used by the javascript version of the google api
 class TemplateCSRFView(TemplateView):
     """A view for loading google javascript api and ajax json post by xhr to post
      the view always send csrf token along responds(means there is no need for {% csrf token %})"""
-    template_name = 'oauth2_google/google_api.html'
-    extra_context = {'client_id': SocialProvider.objects.get(social=SocialProvider.GOOGLE).client_id, }
+    template_name = 'SocialGoogle/google_api.html'
+
+    # extra_context = {'client_id': SocialProvider.objects.get(social=SocialProvider.GOOGLE).client_id, }
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if 'client_id' not in data:
+            data['client_id'] = SocialProvider.objects.get(social=SocialProvider.GOOGLE).client_id
+        return data
 
 
 class AjaxJsonGoogleMixin:
