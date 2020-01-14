@@ -6,7 +6,9 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-django = "==2.*"
+django = "*"
+djangorestframework = "*"
+# required::app:oauth2_google
 requests = "*"
 google-auth-oauthlib = "*"
 

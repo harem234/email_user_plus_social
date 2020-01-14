@@ -29,7 +29,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'user.apps.UserConfig',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -37,7 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-
+    'rest_framework.apps.RestFrameworkConfig',
+    'rest_framework.authtoken',
+    'user.apps.UserConfig',
+    'user_api.apps.UserApiConfig',
     'social.apps.SocialConfig',
     'oauth2_google.apps.Oauth2GoogleConfig',
 ]
@@ -71,7 +74,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'emailUser_social.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -130,8 +132,29 @@ STATIC_URL = '/static/'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # File Backend
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'emails')
+# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+# EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'emails')
+
+# Email: Send Grid  Using SMPT
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Email: Send Grid  Using Web API
+# requires: pip install django-sendgrid-v5
+# EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+# SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+
+# There are also optional settings to deliver emails in debug mode or to send them to standard output:
+# Toggle sandbox mode (when running in DEBUG mode)
+# SENDGRID_SANDBOX_MODE_IN_DEBUG = True
+
+# echo to stdout or any other file-like object that is passed to the backend via the stream kwarg.
+# SENDGRID_ECHO_TO_STDOUT = True
 
 # social google
 GOOGLE_CLIENT_FILE_PATH = 'C:\\Users\\mahdi\\Desktop\\Custom_user_socialSignin\\oauth2_google\\client_secret.json'

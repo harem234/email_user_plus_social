@@ -25,7 +25,7 @@ class CustomUserAdmin(UserAdmin):
     model = get_user_model()
     list_display = list(UserAdmin.list_display + ('site', 'site_id',))
     list_display.remove('username')
-    list_display = tuple(list_display) + tuple('username')
+    list_display = tuple(list_display)
     search_fields = ('email', 'first_name', 'last_name',)
     ordering = ('email',)
 
