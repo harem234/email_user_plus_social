@@ -1,5 +1,3 @@
-from abc import ABC
-
 from django.contrib.auth import get_user_model, authenticate
 from django.utils.translation import ugettext_lazy as _
 
@@ -13,22 +11,54 @@ from user.models import EmailUser
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the users object"""
 
+    error_messages = {
+        'password_mismatch': _('The two password fields did NOT match.'),
+    }
+    password1 = serializers.CharField(
+        label=_("Password"),
+        trim_whitespace=False,
+        required=False,
+        write_only=True,
+        min_length=5,
+        help_text=_("Enter the password for your account."),
+    )
+    password2 = serializers.CharField(
+        label=_("Password confirmation"),
+        trim_whitespace=False,
+        required=False,
+        write_only=True,
+        min_length=5,
+        help_text=_("Enter the same password again, for verification."),
+    )
     email = serializers.EmailField(label='Email', max_length=254,
                                    validators=[UniqueValidator(queryset=EmailUser.objects.all(),
-                                                               message='Unable to log in with provided credentials.')])
+                                                               message='Unable to sign in with provided credentials.')])
 
     class Meta:
         model = get_user_model()
-        fields = ('email', 'password',)
+        fields = ('email', 'password1', 'password2', 'first_name', 'last_name')
         extra_kwargs = {'password': {'write_only': True, 'min_length': 5}, }
+
+    def validate(self, attrs):
+        password1 = attrs.get("password1", None)
+        password2 = attrs.get("password2", None)
+        if password1 and password2 and password1 != password2:
+            raise serializers.ValidationError(
+                self.error_messages['password_mismatch'],
+                code='password_mismatch',
+            )
+        return attrs
 
     def create(self, validated_data):
         """Create a new user with encrypted password and return it"""
-        return get_user_model().objects.create_user(**validated_data)
+        validated_data.pop('password1', None)
+        password = validated_data.pop('password2', None)
+        return get_user_model().objects.create_user(password=password, **validated_data)
 
     def update(self, instance, validated_data):
         """Update a user, setting the password correctly and return it"""
-        password = validated_data.pop('password', None)
+        validated_data.pop('password1', None)
+        password = validated_data.pop('password2', None)
         user = super().update(instance, validated_data)
 
         if password:

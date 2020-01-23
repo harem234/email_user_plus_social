@@ -1,6 +1,5 @@
 <!-- put this in meta -->
 <script src="https://apis.google.com/js/platform.js?onload=initClient" async defer></script>
-
 <div id="customBtn">
     <button>Google</button>
 </div>
@@ -139,7 +138,7 @@
 
 
         xhr.open('POST', "{% url google_ajax_url_name %}", true);
-        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest"); //request.is_ajax() depends on X-Requested-With header
+        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest"); //django: request.is_ajax() depends on X-Requested-With header
 
         //POST FORM, Content-Type: application/x-www-form-urlencoded
         //xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');

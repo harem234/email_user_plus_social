@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+# alias for os.path.join functions
+jj = os.path.join
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -25,8 +28,6 @@ SECRET_KEY = 'i0fc5c3*97(pj5nr(ylln8-fwjxeq-yf3fs*6qgvi5r^bu(n7x'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
-# Application definition
 
 INSTALLED_APPS = [
 
@@ -157,5 +158,5 @@ EMAIL_USE_TLS = True
 # SENDGRID_ECHO_TO_STDOUT = True
 
 # social google
-GOOGLE_CLIENT_FILE_PATH = 'C:\\Users\\mahdi\\Desktop\\Custom_user_socialSignin\\oauth2_google\\client_secret.json'
+GOOGLE_CLIENT_FILE_PATH = jj(jj(BASE_DIR, 'oauth2_google'), 'client_secret.json')
 GOOGLE_OPTIONS = {'prompt': 'consent'}

@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 # https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#custom-users-and-django-contrib-admin
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
-        (_('extended'), {'fields': ('site', 'isEmailVerified',)}),
+        (_('extended'), {'fields': ('site', 'is_email_verified',)}),
     )
 
     # change
@@ -18,7 +18,7 @@ class CustomUserAdmin(UserAdmin):
     # create
     custom_add_fieldsets[0][1]['fields'] = ('email', 'password1', 'password2')
     add_fieldsets = custom_add_fieldsets + (
-        (_('extended'), {'fields': ('site', 'isEmailVerified',)}),
+        (_('extended'), {'fields': ('site', 'is_email_verified',)}),
     )
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm

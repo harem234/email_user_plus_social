@@ -30,14 +30,14 @@ REQUIRE_LOGGED_IN_URL_NAMES = ['google_callback_add_social', 'google_callback_re
 
 
 @require_http_methods(["GET", ])
-def google_call(request, next_call):
+def google_call(request, google_caller_url_name):
     """
     :param request:
-    :param next_call: str
+    :param google_caller_url_name: str
         name of the url to get called-back by google.
     """
     # view names that require logged in user
-    if next_call in REQUIRE_LOGGED_IN_URL_NAMES:
+    if google_caller_url_name in REQUIRE_LOGGED_IN_URL_NAMES:
         # view require logged in user
         if not request.user.is_authenticated:
             return redirect_to_login(request.path, login_url=reverse('login'))
@@ -57,7 +57,7 @@ def google_call(request, next_call):
     # you will get a 'redirect_uri_mismatch' error.
     try:
         # todo any better idea to make the url?
-        flow.redirect_uri = '%s%s' % (request.build_absolute_uri('/')[:-1], reverse(next_call))
+        flow.redirect_uri = '%s%s' % (request.build_absolute_uri('/')[:-1], reverse(google_caller_url_name))
     except KeyError:
         return redirect('google_error')
 
@@ -261,14 +261,14 @@ def google_callback_add_social(request):
     idinfo = authorize_by_google_api_profile(flow.credentials.client_id, flow.credentials.id_token, )
     social_id = idinfo['sub']
     email = idinfo['email']
-    # isEmailVerified = idinfo['email_verified']
+    # is_email_verified = idinfo['email_verified']
     try:
         socialAccount, isCreated = SocialAccount.objects.get_or_create(site=Site.objects.get_current(),
                                                                        user=request.user,
                                                                        provider=SocialProvider.objects.get(
                                                                            social=SocialProvider.GOOGLE),
                                                                        defaults={
-                                                                           'social_id': social_id, 'isConnected': True,
+                                                                           'social_provider_identifier': social_id, 'is_connected': True,
                                                                            'email': email, })
 
     except DatabaseError:
@@ -319,10 +319,8 @@ the following is used by the javascript version of the google api
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class TemplateCSRFView(TemplateView):
     """A view for loading google javascript api and ajax json post by xhr to post
-     the view always send csrf token along responds(means there is no need for {% csrf token %})"""
-    template_name = 'SocialGoogle/google_api.html'
-
-    # extra_context = {'client_id': SocialProvider.objects.get(social=SocialProvider.GOOGLE).client_id, }
+     the view always send csrf token along responds(means there is no need for {% csrf token %} (tag))"""
+    template_name = 'oauth2_google/google_api.html'
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -441,8 +439,8 @@ class GoogleAjaxAddSocialView(AjaxGoogleAuthorizeMixin, View):
                                                                                provider=SocialProvider.objects.get(
                                                                                    social=SocialProvider.GOOGLE),
                                                                                defaults={
-                                                                                   'social_id': userId,
-                                                                                   'isConnected': True,
+                                                                                   'social_provider_identifier': userId,
+                                                                                   'is_connected': True,
                                                                                    'email': email, })
             except DatabaseError as err:
                 # database error
@@ -466,8 +464,9 @@ def authorize_by_google_api_profile(client_id, token):
     from google.oauth2 import id_token
     from google.auth.transport import requests
 
-    idinfo = None
+
     try:
+        idinfo = None
         # Specify the CLIENT_ID of the app that accesses the backend:
         idinfo = id_token.verify_oauth2_token(token, requests.Request(), client_id)
 
